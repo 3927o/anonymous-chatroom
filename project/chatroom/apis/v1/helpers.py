@@ -67,7 +67,7 @@ def user_delete(code):  # phone verify
 def send_message(tel, code):
     from aliyunsdkcore.client import AcsClient
     from aliyunsdkcore.request import CommonRequest
-    client = AcsClient('LTAI4Fc1e4iqFFsgt6YRcA1u', 'ON5xaXsAJeiAjWiUlnNVAgdLQZLcx6', 'cn-hangzhou')
+    client = AcsClient('<>', '<>', '<>')
 
     request = CommonRequest()
     request.set_accept_format('json')
