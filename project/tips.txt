@@ -1,0 +1,6 @@
+https
+使用id与名字访问资源
+created_at
+updated_at
+"finished_at": "2012-01-01T12:00:00Z"
+保证响应JSON最小化
