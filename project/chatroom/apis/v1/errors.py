@@ -64,3 +64,8 @@ class ParamError(Exception):
 @api_v1.errorhandler(ParamError)
 def param_error(e):
     return api_abort(400, e.args[0])
+
+
+@api_v1.errorhandler(404)
+def not_found():
+    return api_abort(404, 'resource not found')

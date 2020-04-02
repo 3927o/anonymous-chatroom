@@ -51,8 +51,8 @@ def room_schema(room, users=True, messages=True):
             'name': room.owner.username,
             'url': url_for('.user', id=room.owner.id, _external=True)
         },
-        'timestamp': str(room.timestamp),
-        'updated': str(room.updated)
+        'created_at': str(room.timestamp),
+        'updated_at': str(room.updated)
     }
     if users:
         data['users'] = users_schema(room.users)
@@ -71,8 +71,22 @@ def rooms_schema(rooms):
 
 
 def message_schema(message):
-    return {}
+    return {
+        'id': message.id,
+        'self': url_for('.message', id=message.id, _external=True),
+        'kind': "message",
+        'content': message.content,
+        'author': user_schema(message.author, False, False, False),
+        'room': room_schema(message.room, False, False),
+        'created_at': str(message.timestamp),
+        'updated_at': str(message.updated)
+    }
 
 
 def messages_schema(messages):
-    return {}
+    return {
+        'self': url_for('.messages'),
+        'kind': 'MessageList',
+        'count': len(messages),
+        'messages': [message_schema(message) for message in messages]
+    }

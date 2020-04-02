@@ -92,31 +92,48 @@ class UserListAPI(Resource):
 
 class MessageAPI(Resource):
 
-    def get(self):
-        pass
+    def get(self, id):
+        message = Message.query.get_or_404(id)
+        data = message_schema(message)
+        return make_resp(data)
 
-    def post(self):
-        pass
+    @auth_required
+    def put(self, id):
+        message = Message.query.get_or_404(id)
+        data = message_put_reqparse.parse_args()
 
-    def put(self):
-        pass
+        if message.author is not g.current_user:
+            return api_abort(403, 'permission denied')
 
+        message.content = data['content']
+        db.session.commit()
+        return make_resp(message_schema(message))
+
+    @auth_required
     def delete(self):
-        pass
+        message = Message.query.get_or_404(id)
+
+        if message.author is not g.current_user:
+            return api_abort(403, 'permission denied')
+        if datetime.utcnow().timestamp() - message.timestamp.timestamp() >= 120:
+            return api_abort(403, 'time limit excess')
+
+        data = message_schema(message)
+        db.session.delete(message)
+        db.session.commit()
+        return make_resp(data)
 
 
 class MessageListAPI(Resource):  # 采用参数的方式获取某一房间的消息
 
     def get(self):
-        pass
+        room = request.args.get('room_id', None)
+        user = request.args.get('user_id', None)
+        messages = get_messages(user, room)
+        data = messages_schema(messages)
+        return make_resp(data)
 
     def post(self):
-        pass
-
-    def put(self):
-        pass
-
-    def delete(self):
         pass
 
 
