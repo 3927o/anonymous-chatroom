@@ -52,9 +52,13 @@ class UserAPI(Resource):
         user = User.query.get(id)
         if user is None:
             return api_abort(422, 'user do not exit')
+
         if g.current_user.id != id:
-            return api_abort(403, 'permission denied')
-        return make_resp(user_schema(user))
+            data = user_schema(user, False, False, False)
+        else:
+            data = user_schema(user)
+
+        return make_resp(data)
 
     def put(self, id):
         data = user_put_reqparse.parse_args()
@@ -65,6 +69,8 @@ class UserAPI(Resource):
         return make_resp(data=data)
 
     def delete(self, id):
+        if len(g.current_user.rooms_owned) != 0:
+            return api_abort(400, 'user owned some rooms')
         code = request.args.get('verify_code', None)
         data = user_delete(code)
         return make_resp(data)
@@ -115,24 +121,52 @@ class MessageListAPI(Resource):  # 采用参数的方式获取某一房间的消
 
 
 class RoomAPI(Resource):
+    def get(self, id):
+        room = Room.query.get(id)
+        if room is None:
+            return api_abort(422, 'room do not exit')
+        data = room_schema(room)
+        return make_resp(data)
 
-    def get(self):
-        pass
+    @auth_required
+    def put(self, id):  # 采用装饰器确认是否有权限
+        room = Room.query.get(id)
+        if room is None:
+            return api_abort(422, 'room do not exit')
+        if g.current_user is not room.owner:
+            return api_abort(403, 'permission denied')
+        data = room_put_reqparse.parse_args()
+        data = room_put(data, room)
+        return make_resp(data)
 
-    def put(self):  # 采用装饰器确认是否有权限
-        pass
-
-    def delete(self):
-        pass
+    @auth_required
+    def delete(self, id):
+        room = Room.query.get(id)
+        if room is None:
+            return api_abort(422, 'room do not exit')
+        if g.current_user is not room.owner:
+            return api_abort(403, 'permission denied')
+        db.session.delete(room)
+        db.session.commit()
 
 
 class RoomListAPI(Resource):
 
     def get(self):
-        pass
+        rooms = Room.query.all()
+        return make_resp(rooms_schema(rooms))
 
+    @auth_required
     def post(self):
-        pass
+        data = room_post_reqparse.parse_args()
+        if Room.query.filter_by(name=data['name']).first() is not None:
+            return api_abort(422, 'room name already exit')
+        room = Room(data['name'], data['introduce'])
+        room.owner.append(g.current_user)
+        room.users.append(g.current_user)
+        db.session.add(room)
+        db.session.commit()
+        return make_resp(room_schema(room))
 
 
 class VerifyCodeAPI(Resource):

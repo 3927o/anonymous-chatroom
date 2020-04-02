@@ -53,5 +53,14 @@ class VerifyCodeError(Exception):
 
 
 @api_v1.errorhandler(VerifyCodeError)
-def invalid_verify_code(e):
+def invalid_verify_code():
     return api_abort(400, 'wrong verify code')
+
+
+class ParamError(Exception):
+    pass
+
+
+@api_v1.errorhandler(ParamError)
+def param_error(e):
+    return api_abort(400, e.args[0])

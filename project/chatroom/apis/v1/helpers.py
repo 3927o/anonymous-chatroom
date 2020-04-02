@@ -1,8 +1,8 @@
 from flask import g
 from datetime import datetime
 
-from chatroom.models import User, db, VerifyCode
-from chatroom.apis.v1.errors import api_abort, NoCurrentUser, VerifyCodeError
+from chatroom.models import User, db, VerifyCode, Room, Message
+from chatroom.apis.v1.errors import api_abort, NoCurrentUser, VerifyCodeError, ParamError
 from chatroom.apis.v1.schemas import *
 
 
@@ -48,6 +48,21 @@ def user_put(data):  # phone verify
         user.set_password(data['password'])
     if data['phone'] is not None:
         user.phone = data['phone']
+    if data['room'] is not None:
+        try:
+            room = Room.query.filter_by(id=data['room']['id']).first()  # 其实可以first_or_404省去那么多None的判断的。。。
+            action = data['room']['action']
+        except KeyError:
+            raise ParamError("id and action is needed")
+
+        if room is None:
+            raise ParamError('room do not exit')
+
+        if action == 'add':
+            user.rooms.append(room)
+        elif action == 'delete':
+            user.rooms.remove(room)
+
     db.session.commit()
     return user_schema(user)
 
@@ -96,6 +111,8 @@ def check_time_interval(phone_or_code, interval):
     if exit_code is not None:
         time_now = datetime.utcnow()
         if time_now.utcnow().timestamp() - exit_code.create_time.timestamp() > interval:
+            db.session.delete(exit_code)
+            db.session.commit()
             return False
     return True
 
@@ -103,12 +120,32 @@ def check_time_interval(phone_or_code, interval):
 def validate_code(phone, code, type):
     real = VerifyCode.query.filter_by(phone=phone).first()
     if not check_time_interval(real, 300):
-        print("TLE")
         return False
     if real is None or real.code != int(code) or real.type != type:
-        print(real.code)
-        print(code)
         return False
     db.session.delete(real)
     db.session.commit()
     return True
+
+
+# def get_rooms(owner=None):
+#     if owner is None:
+#         rooms = Room.query.filter_by()
+
+
+def get_messages(user=None, room=None):
+    messages = Message.query
+    if user is not None:
+        messages = messages.filter_by(author_id=user)
+    if room is not None:
+        messages = messages.filter_by(room_id=room)
+    return messages.all()
+
+
+def room_put(data, room):
+    if data['name'] is not None:
+        room.name = data['name']
+    if data['introduce'] is not None:
+        room.introduce = data['introduce']
+    db.session.commit()
+    return room_schema(room)

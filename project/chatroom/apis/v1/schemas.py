@@ -1,17 +1,19 @@
-from flask import url_for
+from flask import url_for, jsonify
 
 # 可尝试使用filed
 
 
 def make_resp(data, status=200, message='succeed'):
-    return {
+    resp = jsonify({
         'status': status,
         'message': message,
         'data': data
-    }
+    })
+    resp.status_code = status
+    return resp
 
 
-def user_schema(user, tel=True):
+def user_schema(user, tel=True, messages=True, rooms=True):
     data = {
         'id': user.id,
         'self': url_for('.user', id=user.id, _external=True),
@@ -22,6 +24,10 @@ def user_schema(user, tel=True):
     }
     if tel:
         data['tel'] = user.phone
+    if messages:
+        data['messages'] = messages_schema(user.messages)
+    if rooms:
+        data['rooms'] = rooms_schema(user.rooms)
     return data
 
 
@@ -30,5 +36,43 @@ def users_schema(users):  # 分页功能
         'self': url_for('.users'),
         'kind': 'UserList',
         'count': len(users),
-        'users': [user_schema(user, tel=False) for user in users]
+        'users': [user_schema(user, False, False, False) for user in users]
     }
+
+
+def room_schema(room, users=True, messages=True):
+    data = {
+        'id': room.id,
+        'self': url_for('.room', id=room.id, _external=True),
+        'kind': 'room',
+        'name': room.name,
+        'introduce': room.introduce,
+        'owner': {
+            'name': room.owner.username,
+            'url': url_for('.user', id=room.owner.id, _external=True)
+        },
+        'timestamp': str(room.timestamp),
+        'updated': str(room.updated)
+    }
+    if users:
+        data['users'] = users_schema(room.users)
+    if messages:
+        data['messages'] = messages_schema(room.messages)
+    return data
+
+
+def rooms_schema(rooms):
+    return {
+        'self': url_for('.rooms'),
+        'kind': 'RoomList',
+        'count': len(rooms),
+        'rooms': [room_schema(room, users=False, messages=False) for room in rooms]
+    }
+
+
+def message_schema(message):
+    return {}
+
+
+def messages_schema(messages):
+    return {}

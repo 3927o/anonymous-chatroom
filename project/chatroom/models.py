@@ -17,7 +17,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(128))
     phone = db.Column(db.String(30), unique=True)  # 添加短信验证和格式验证
     messages = db.relationship('Message', back_populates='author', cascade='all')
-    # rooms_owned = 1
+    rooms_owned = db.relationship('Room', back_populates='owner', cascade='all')  # 若拥有聊天室则不能删除用户
     avatar = 1
     rooms = db.relationship('Room',
                             secondary=assist_table,
@@ -47,8 +47,8 @@ class Room(db.Model):
     timestamp = db.Column(db.DateTime)
     updated = db.Column(db.DateTime, default=datetime.utcnow())
     messages = db.relationship('Message', back_populates='room', cascade='all')
-    # owner_id = 1
-    # owner = 1
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner = db.relationship('User', back_populates='rooms_owned')
     users = db.relationship('User',
                             secondary=assist_table,
                             back_populates='rooms')

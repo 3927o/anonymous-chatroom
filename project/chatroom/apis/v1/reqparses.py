@@ -18,3 +18,12 @@ user_put_reqparse.add_argument('username', type=str, location='json')
 user_put_reqparse.add_argument('password', type=str, location='json')
 user_put_reqparse.add_argument('phone', type=str, location='json')
 user_put_reqparse.add_argument('verify_code', type=str, location='json')
+user_put_reqparse.add_argument('room', type=dict, location='json')
+
+room_post_reqparse = reqparse.RequestParser()
+room_post_reqparse.add_argument('name', type=str, location='json', required=True)
+room_post_reqparse.add_argument('introduce', type=str, location='json')
+
+room_put_reqparse = reqparse.RequestParser()
+room_put_reqparse.add_argument('name', type=str, location='json')
+room_put_reqparse.add_argument('introduce', type=str, location='json')
