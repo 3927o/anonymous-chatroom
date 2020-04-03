@@ -5,6 +5,7 @@
       <w>oldvalue</w>
       <w>reqparse</w>
       <w>signin</w>
+      <w>socketio</w>
     </words>
   </dictionary>
 </component>

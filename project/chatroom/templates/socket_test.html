@@ -5,15 +5,46 @@
     <title>Title</title>
 </head>
 <body>
-    test
-    <div id="test"></div>
+    test:<div id="test"></div>
+    new message:<div id="new_message"></div>
+    user join:<div id="join"></div>
+    user leave:<div id="leave"></div>
+
+    <button onclick="socket.emit('new message', {
+    'username': 'lin',
+    'room': 'room1',
+    'content': 'new message'
+})">new message</button>
+
+    <button onclick="socket.emit('join', {
+    'username': 'lin',
+    'room': 'room1'
+})">join</button>
+
+    <button onclick="socket.emit('leave', {
+    'username': 'lin',
+    'room': 'room1'
+})">leave</button>
+
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 <script type="text/javascript" charset="utf-8">
 namespace='/'
 var socket = io.connect('http://127.0.0.1:80');
+socket.on('connect', function() {
+document.getElementById('test').innerHTML='succeed'
+});
 // socket.emit('connectt', {data: 'I\'m connected!'});
 socket.on('response', function(res) {
 document.getElementById('test').innerHTML=res
+});
+socket.on('new message', function(res) {
+document.getElementById('new_message').innerHTML=res
+});
+socket.on('join_succeed', function(res) {
+document.getElementById('join').innerHTML=res
+});
+socket.on('leave_succeed', function(res) {
+document.getElementById('leave').innerHTML=res
 });
 </script>
 </body>

@@ -1,7 +1,7 @@
 from flask import Flask
 import os
 
-from chatroom.extensions import db, avatars
+from chatroom.extensions import db, avatars, socketio
 from chatroom.settings import config
 from chatroom.apis.v1 import api_v1
 
@@ -21,6 +21,7 @@ def create_app(config_name=None):
 def register_extensions(app):
     db.init_app(app)
     avatars.init_app(app)
+    socketio.init_app(app)
 
 
 def register_blueprints(app):
