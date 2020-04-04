@@ -2,6 +2,7 @@ from functools import wraps
 
 from flask import g, current_app, request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired
+from  flask_socketio import join_room
 
 from chatroom.models import User
 from chatroom.apis.v1.errors import api_abort, token_missing, InvalidTokenError

@@ -1,0 +1,2 @@
+2020-04-03 20:50:30+0800 [-] Log opened.
+2020-04-03 20:50:30+0800 [-] C:\Users\kaijin.L\AppData\Local\Programs\Python\Python37\lib\site-packages\sqlalchemy\sql\ddl.py:906: sqlalchemy.exc.SAWarning: Can't sort tables for DROP; an unresolvable foreign key dependency exists between tables: room, user, and backend does not support ALTER.  To restore at least a partial sort, apply use_alter=True to ForeignKey and ForeignKeyConstraint objects involved in the cycle to mark these as known cycles that will be ignored.

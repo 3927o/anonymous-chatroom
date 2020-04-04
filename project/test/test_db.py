@@ -13,9 +13,9 @@ def add_tool(*item):
 class DatabaseTestCase(BaseTestCase):
 
     def test_user(self):
-        user1 = User('user1', '123456')
-        user2 = User('user2', '123456')
-        user3 = User('user1', '123456')
+        user1 = User('user1', '123456', '1')
+        user2 = User('user2', '123456', '1')
+        user3 = User('user1', '123456', '1')
         db.session.add(user1)
         db.session.add(user2)
         db.session.add(user3)
@@ -57,9 +57,9 @@ class DatabaseTestCase(BaseTestCase):
         self.assertEqual(message3.author_id, 2)
 
     def test_user_room(self):
-        user1 = User('user1', '123456')
-        user2 = User('user2', '123456')
-        user3 = User('user3', '123456')
+        user1 = User('user1', '123456', '1')
+        user2 = User('user2', '123456', '1')
+        user3 = User('user3', '123456', '1')
         room1 = Room('room1')
         room2 = Room('room2')
         add_tool(user1, user2, user3, room1, room2)
@@ -74,8 +74,8 @@ class DatabaseTestCase(BaseTestCase):
         self.assertEqual(user3.rooms[1].name, 'room2')
 
     def test_user_message(self):
-        user1 = User('user1', '123456')
-        user2 = User('user2', '123456')
+        user1 = User('user1', '123456', '1')
+        user2 = User('user2', '123456', '1')
         message1 = Message('message1', 1, '1')
         message2 = Message('message2', 1, '1')
         message3 = Message('message3', 2, '1')

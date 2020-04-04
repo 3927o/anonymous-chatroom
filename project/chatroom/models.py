@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from uuid import uuid1
 from datetime import datetime
+from flask_socketio import emit
 
 from chatroom.extensions import db
 
@@ -16,12 +17,14 @@ class User(db.Model):
     updated = db.Column(db.DateTime, default=datetime.utcnow())
     password_hash = db.Column(db.String(128))
     phone = db.Column(db.String(30), unique=True)  # 添加短信验证和格式验证
+
     messages = db.relationship('Message', back_populates='author', cascade='all')
     rooms_owned = db.relationship('Room', back_populates='owner', cascade='all')  # 若拥有聊天室则不能删除用户
+
+    room_id = db.Column(db.String(36), db.ForeignKey('room.id'))
+    room = db.relationship('Room', back_populates='users')
+
     avatar = 1
-    rooms = db.relationship('Room',
-                            secondary=assist_table,
-                            back_populates='users')
 
     def set_avatar(self, file):
         pass
@@ -46,12 +49,12 @@ class Room(db.Model):
     introduce = db.Column(db.Text)
     timestamp = db.Column(db.DateTime)
     updated = db.Column(db.DateTime, default=datetime.utcnow())
-    messages = db.relationship('Message', back_populates='room', cascade='all')
+
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     owner = db.relationship('User', back_populates='rooms_owned')
-    users = db.relationship('User',
-                            secondary=assist_table,
-                            back_populates='rooms')
+
+    messages = db.relationship('Message', back_populates='room', cascade='all')
+    users = db.relationship('User', back_populates='room')
     avatar = 1
 
     def set_avatar(self, file):
@@ -107,9 +110,18 @@ def update_time(target, value, oldvalue, initiator):
     target.updated = datetime.utcnow()
 
 
+def on_message(target, value, oldvalue, initiator):
+    emit('new message', {
+        'content': target.content,
+        'user': target.author.username,
+    }, room=target.room.name)
+
+
 db.event.listen(Room.name, 'set', update_time)
 db.event.listen(Room.introduce, 'set', update_time)
 db.event.listen(User.username, 'set', update_time)
 db.event.listen(User.password_hash, 'set', update_time)
 db.event.listen(User.phone, 'set', update_time)
 db.event.listen(Message.content, 'set', update_time)
+
+db.event.listen(Message, 'after_insert', on_message)

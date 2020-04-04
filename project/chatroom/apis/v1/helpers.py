@@ -1,4 +1,5 @@
 from flask import g
+from flask_socketio import join_room, leave_room, emit
 from datetime import datetime
 
 from chatroom.models import User, db, VerifyCode, Room, Message
@@ -50,7 +51,7 @@ def user_put(data):  # phone verify
         user.phone = data['phone']
     if data['room'] is not None:
         try:
-            room = Room.query.filter_by(id=data['room']['id']).first()  # 其实可以first_or_404省去那么多None的判断的。。。
+            room = Room.query.filter_by(id=data['room']['id']).first_or_404()  # 其实可以first_or_404省去那么多None的判断的。。。
             action = data['room']['action']
         except KeyError:
             raise ParamError("id and action is needed")
@@ -59,9 +60,13 @@ def user_put(data):  # phone verify
             raise ParamError('room do not exit')
 
         if action == 'add':
-            user.rooms.append(room)
+            join_room(room.name)
+            user.room = room
+            emit('join room', user_schema(user, False, False, False), room=room.name)
         elif action == 'delete':
-            user.rooms.remove(room)
+            leave_room(room.name)
+            user.room = None
+            emit('leave room', user_schema(user, False, False, False), room=room.name)
 
     db.session.commit()
     return user_schema(user)

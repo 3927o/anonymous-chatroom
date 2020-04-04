@@ -1,6 +1,7 @@
 from flask_restful import Api, Resource
 from flask import jsonify, request, g
-from datetime import datetime
+from flask_socketio import close_room, emit
+import time
 import random
 
 from chatroom.models import User, Message, Room, VerifyCode
@@ -85,7 +86,6 @@ class UserListAPI(Resource):
 
     def post(self):  # 采用参数确定是注册，登录，登出
         data = signup_reqparse.parse_args()
-        code = VerifyCode.query.filter_by(phone=data['phone']).first()
         data = signup(data)
         return make_resp(data)
 
@@ -133,8 +133,14 @@ class MessageListAPI(Resource):  # 采用参数的方式获取某一房间的消
         data = messages_schema(messages)
         return make_resp(data)
 
+    @auth_required
     def post(self):
-        pass
+        data = message_post_reqparse.parse_args()
+        user = g.current_user
+        new_message = Message(data['content'], user.id, user.rooms[0].id)
+        db.session.add(new_message)
+        db.session.commit()
+        return make_resp(message_schema(new_message))
 
 
 class RoomAPI(Resource):
@@ -163,6 +169,11 @@ class RoomAPI(Resource):
             return api_abort(422, 'room do not exit')
         if g.current_user is not room.owner:
             return api_abort(403, 'permission denied')
+
+        emit('close room', 'room will be closed after 10 sec', room=room.name)
+        time.sleep(10)
+        close_room(room.name)
+
         db.session.delete(room)
         db.session.commit()
 

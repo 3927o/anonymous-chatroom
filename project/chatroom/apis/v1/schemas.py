@@ -1,6 +1,7 @@
 from flask import url_for, jsonify
 
 # 可尝试使用filed
+# 使用filed可免去判断参数是否在枚举范围内的步骤
 
 
 def make_resp(data, status=200, message='succeed'):
@@ -13,7 +14,7 @@ def make_resp(data, status=200, message='succeed'):
     return resp
 
 
-def user_schema(user, tel=True, messages=True, rooms=True):
+def user_schema(user, tel=True, messages=True, room=True):
     data = {
         'id': user.id,
         'self': url_for('.user', id=user.id, _external=True),
@@ -26,8 +27,8 @@ def user_schema(user, tel=True, messages=True, rooms=True):
         data['tel'] = user.phone
     if messages:
         data['messages'] = messages_schema(user.messages)
-    if rooms:
-        data['rooms'] = rooms_schema(user.rooms)
+    if room:
+        data['rooms'] = room_schema(user.room, False, False)
     return data
 
 
